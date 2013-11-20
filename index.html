@@ -89,6 +89,8 @@
       setTimeout("step()", 1000);
       var step = function() {
           // trigger the next state transitions
+          LogAction();
+
           officer.state = officer.state.tick();
           diner.state = diner.state.tick();
 
@@ -99,8 +101,15 @@
               break;
             case 'choosed':        
               break;
-            case 'queue':
-              //officer.TargetFood.queue.push(officer);
+            case 'bill':
+                //bill charge from client.
+                if (officer.state.identifier == "buyFood"){
+                  officer.Budget -= officer.TargetFoodPrice;
+                }else if (officer.state.identifier == "buyDrink"){
+                  officer.Budget -= officer.TargetDrinkPrice;
+                }  
+                console.log(' ** bill | Budget ', officer.name, officer.Budget );
+                officer.state.identifier = "idle"; 
               break;
           }
 
@@ -110,11 +119,19 @@
               if(diner.cookTime != undefined){
                 clearTimeout(diner.cookTime);
               }
+              diner.stock -= 1;
               diner.cookTime = setTimeout(function(){
                  diner.cook_done = true; 
                  console.log(' ** cook | cook_done' );
                  diner.state.identifier = "cooked"; 
               }, (1/diner.cooking_speed) * 1000 ); 
+              break;
+            case 'bill':
+                diner.cook_done = false;
+                //bill charge from client.
+                diner.Income += diner.Price;
+                console.log(' ** bill | Income ', diner.name, diner.Income, diner.Price);
+                diner.state.identifier = "idle"; 
               break;
           }
 

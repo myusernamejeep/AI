@@ -187,14 +187,6 @@ Officer.states = {
   },
 
   bill: function() { 
-    //bill charge from client.
-    if (this.state.identifier == "buyFood"){
-      this.Budget -= this.TargetFoodPrice;
-    }else if (this.state.identifier == "buyDrink"){
-      this.Budget -= this.TargetDrinkPrice;
-    }  
-    console.log(' ** bill | Budget ', this.name, this.Budget );
-    this.state.identifier = "idle"; 
   }, // nothing to do - just a state
 
   canBill: function() { 
@@ -295,12 +287,7 @@ Diner.states = {
     return this.stock > 0 && this.state.identifier == "fetch";  
   },
 
-  bill: function() { 
-    this.cook_done = false;
-    //bill charge from client.
-    this.Income += this.Price;
-    console.log(' ** bill | Income ', this.name, this.Income, this.Price);
-    this.state.identifier = "idle"; 
+  bill: function() {   
   }, // nothing to do - just a state
 
   canBill: function() { 
