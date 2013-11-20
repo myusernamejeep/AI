@@ -1,0 +1,132 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <title>Rong-ar-Haarn Officer Ai : Choose Food Shop</title>
+
+    <script type="text/javascript" src="underscore-min.js"></script>
+    <script type="text/javascript" src="base.js"></script>
+    <script type="text/javascript" src="machine.js"></script>
+    <script type="text/javascript" src="clients.js"></script>
+    <script type="text/javascript" src="data.js"></script>
+    <link rel="stylesheet" type="text/css" href="main.css" />
+    <link rel="shortcut icon" type="image/x-png" href="favicon.png" />
+
+    <script type="text/javascript">
+      // the json that defines the trees that control the actors
+      var officerJson = {
+          identifier: "idle", strategy: "prioritised",
+          children: [
+              {
+                  identifier: "choose", strategy: "sequential",
+                  children: [
+                      /*{ identifier: "queue" , strategy: "sequential", children: [
+                        { identifier: "buyFood", strategy: "sequential", children: [
+                          { identifier: "bill" }
+                          ] }
+                        ]
+                      },                  
+                      { identifier: "queue" , strategy: "sequential", children: [
+                        { identifier: "buyDrink", strategy: "sequential", children: [
+                          { identifier: "bill" }
+                          ] }
+                        ]
+                      },*/
+                      { identifier: "queue" },
+                      { identifier: "buyFood" },
+                      { identifier: "bill" }
+                  ]
+              }, 
+              {
+                  identifier: "choose", strategy: "sequential",
+                  children: [
+                      { identifier: "queue" },
+                      { identifier: "buyDrink" },
+                      { identifier: "bill" }
+                  ]
+              },     
+              { identifier: "leave" } 
+          ]
+      };
+
+      var dinerJson = {
+          identifier: "idle", strategy: "sequential",
+          children: [
+              { identifier: "fetch", strategy: "sequential", 
+                children: [
+                  { identifier: "cook" },
+                  { identifier: "bill" },
+                ]
+                /*
+                children: [
+                  { identifier: "cook", strategy: "sequential",
+                    children: [
+                      { identifier: "bill", strategy: "sequential", 
+                        children: [
+                          {identifier: "idle" }
+                        ]}
+                    ]}
+                ]},*/
+              },
+              { identifier: "close" },
+
+              //{ identifier: "cook" },
+              //{ identifier: "bill" },
+          ]
+      };
+ 
+      // make instance of Machine and get the root nodes for each actor
+      var machine = new Machine();
+      officer.state = machine.generateTree(officerJson, officer, Officer.states);
+      diner.state = machine.generateTree(dinerJson, diner, Diner.states);
+
+      function LogAction(){
+          console.log("officer: ", officer.name, officer.state.identifier ); // , "|", officer.state
+          console.log("diner: ", diner.name, diner.state.identifier ); // , "|", diner.state
+          console.log("")
+
+      }
+      // every second, something happens in the ecosystem
+      setTimeout("step()", 1000);
+      var step = function() {
+          // trigger the next state transitions
+          officer.state = officer.state.tick();
+          diner.state = diner.state.tick();
+
+          switch(officer.state.identifier){
+            case 'choose':
+              officer.chooseDiner();
+              officer.state.identifier = "choosed"; 
+              break;
+            case 'choosed':        
+              break;
+            case 'queue':
+              //officer.TargetFood.queue.push(officer);
+              break;
+          }
+
+          switch(diner.state.identifier){
+            case 'cook':
+              console.log(' ---------------** cook ', diner.name, diner.cooking_speed);
+              if(diner.cookTime != undefined){
+                clearTimeout(diner.cookTime);
+              }
+              diner.cookTime = setTimeout(function(){
+                 diner.cook_done = true; 
+                 console.log(' ** cook | cook_done' );
+                 diner.state.identifier = "cooked"; 
+              }, (1/diner.cooking_speed) * 1000 ); 
+              break;
+          }
+
+          console.log("officer: ", officer.name, officer.state.identifier ); // , "|", officer.state
+          console.log("diner: ", diner.name, diner.state.identifier ); // , "|", diner.state
+          console.log("")
+
+          setTimeout("step()", 1000);
+      }
+    </script>
+  </head>
+  <body>
+   
+   </body>
+ </html>
