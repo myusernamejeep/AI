@@ -179,7 +179,9 @@ Officer.prototype = {
   stepY: 0,
   speed:1,
   
-  state:0, //looking
+  //state:0, //looking
+  state:1, //buying
+
   lookRadius:100,
   lookState:0, //init
   buyState:0, //init
@@ -210,7 +212,10 @@ Officer.prototype = {
     }                           
   },
   buy:function(){
-        
+    if(this.Budget <= 0){
+      this.buyState = 8;
+     
+    }    
     switch(this.buyState){
         case 0:
           this.buyInit();         
@@ -225,28 +230,41 @@ Officer.prototype = {
           break;      
           
         case 3:
-          this.buyFood();
+          this.isYourQueue();
+          break;
+
+        case 4:
+          this.buyOrderFood();
           break;
           
-        case 4:
+        case 5:
           this.goToEatTable();
           break;
 
-        case 5:
+        case 6:
           this.eatFood();
           break;
             
-        case 5:
+        case 7:
           this.buyState = 0;
-          break;                                
+          break;   
+
+        case 8:
+          this.goBack();
+          break;
+                                 
       }                                       
   },
   buyInit:function(){
+    if(this.Budget <= 0){
+      this.buyState = 8;
+      return false;
+    }
     this.angle = Math.random() * 2 * Math.PI; 
     this.chooseDiner();
 
-    this.targetX = this.x + (Math.cos(this.angle) * this.lookRadius); 
-    this.targetY = this.y + (Math.sin(this.angle) * this.lookRadius);   
+    this.targetX = this.TargetFood.posX; 
+    this.targetY = this.TargetFood.posY;
     this.setDirection( this.targetX - this.x, this.targetY - this.y );    
               
     this.buyState = 1;
@@ -258,19 +276,63 @@ Officer.prototype = {
       if (this.x == this.targetX && this.y == this.targetY) {
         this.currentFrame = 0;
         this.changeSprite();
-        this.buyState = 2;              
+        this.buyState = 2;     
+        console.log(' --** goToShop complete ', this.name , this.TargetFood);         
       }            
   },
   queueToBuy:function(){
-    
+    if (_.indexOf(this.TargetFood.queue, this) == -1 ){
+      this.TargetFood.queue.push(this); 
+      console.log(' --** add to queue , TargetFood.queue size ', this.TargetFood.queue.length );   
+    }  
     this.stand();
-    
-    if( !(gameTimer % 600) ){
+
+    var num_queue = this.TargetFood.queue.length;
+    var your_index = _.indexOf(this.TargetFood.queue, this);
+    var y = this.targetY + (your_index*this.height);
+    this.moveTo(this.targetX, y );
+    console.log(' --** your_index ', your_index,  y );   
+    /*if( !(gameTimer % 600) ){
       this.angle *= -1;               
       this.setDirection( this.XPos - this.x, this.YPos - this.y );  
-      
-      this.lookState++;   
-    }               
+      //this.lookState++;  
+      console.log(' --** queueToBuy complete ', this.name );   
+    }   */  
+         
+  },
+  isYourQueue:function(){
+    console.log(' --** isYourQueue ', this.name );
+  },
+  buyOrderFood:function(){
+    this.stand();
+    if (this.TargetFood.type == "food"){
+      this.Budget -= this.TargetFoodPrice;
+    }else if (this.TargetFood.type == "drink"){
+      this.Budget -= this.TargetDrinkPrice;
+    }  
+    console.log(' --** bill | Budget ', this.name, this.Budget );
+  },
+  goToEatTable:function(){
+    this.moveTo(500, 500 + (your_index*this.height) );
+    
+    if( !(gameTimer % 600) ){
+       this.setDirection( this.XPos - this.x, this.YPos - this.y );  
+       this.buyState++;   
+    } 
+  },
+  eatFood:function(){
+    console.log(' --** eatFood ', this.name );
+    if( !(gameTimer % 600) ){
+       this.setDirection( this.XPos - this.x, this.YPos - this.y );  
+       this.buyState++;   
+    } 
+  },
+  goBack:function(){
+    this.moveTo(-128, -128);
+    
+    if( !(gameTimer % 600) ){
+       this.setDirection( this.XPos - this.x, this.YPos - this.y );  
+    } 
   },
   look:function(){
         
@@ -426,7 +488,7 @@ Officer.states = {
 
   queue: function() {
     //this.state.identifier = "queue"; 
-    this.TargetFood.queue.push(this);
+    //this.TargetFood.queue.push(this);
     console.log(' ** queue', this.name, ' length ', this.TargetFood.queue.length);  
   },
 
@@ -503,7 +565,7 @@ var Diner = Base.extend({
     //this.image.addEventListener("load", this.updateLoop , false);
     this.image.addEventListener("load", $.proxy( this.updateLoop, self )  , false);
     
-    console.log(' ------- constructor ', this.cooking_speed);
+    //console.log(' ------- constructor ', this.cooking_speed);
     
     this.StartTime = new Date().getTime();
     this.EndTime = this.StartTime + (this.TimeDuration/2 * 1000); 
@@ -511,24 +573,7 @@ var Diner = Base.extend({
 });
 
 Diner.prototype = {
-  /*
-  updateLoop : function (){    
-    this.update();    
-    
-    this.render(); 
-    
-    gameTimer == gameTimerResetTime ? gameTimer = 0 : gameTimer++;  
-    requestAnimationFrame(this.update, this.canvas);
-  },
-
-  render : function (){
-    drawingSurface.clearRect(0, 0, this.canvas.width, this.canvas.height);       
-    drawingSurface.drawImage(
-      image, 
-      this.sourceX, this.sourceY, this.sourceWidth, this.sourceHeight,
-      Math.floor(this.x), Math.floor(this.y), this.width, this.height
-    );            
-  },*/
+ 
   isOpen: function() { return this.stock > 0; },
  
   sourceX: 0,
@@ -561,11 +606,102 @@ Diner.prototype = {
   Charisma : 1,
  
   queue : [], 
-  Income : 0
+  Income : 0,
+  dinerState : 0,
+  states:{ IDLE:0,FETCH:1,COOK:2,COOKED:3,BILL:4,CLOSE:5},   
+  
+  init:function(){       
+  },
+  
+  update : function(){       
+    //console.log(' --**  dinerState ', this.dinerState ); 
+ 
+    switch(this.dinerState){
+        case this.states.IDLE:
+          this.idle();            
+          break;
+        case this.states.FETCH:
+          this.fetch();           
+          break;
+        case this.states.COOK:
+          this.cook();           
+          break;
+        case this.states.COOKED:
+          this.cooked();           
+          break;
+        case this.states.BILL:
+          this.bill();           
+          break;
+        case this.states.CLOSE:
+          this.close();           
+          break;
+
+    }                           
+  },
+  idle: function() {   
+    if( this.stock <= 0 ){
+      this.dinerState = 6;
+      return false;
+    }
+    console.log(' --** idle ', this.name ); 
+    this.dinerState = 1;
+  },
+  fetch: function() {   
+    //console.log(' --** fetch queue ', this.queue   ); 
+    this.current_queue = _.first(this.queue);  
+    if (this.current_queue != undefined){
+      //console.log(' --** fetch this.current_queue ', this.current_queue, this.queue   ); 
+      this.queue = _.rest(this.queue);  
+      this.dinerState = 2;
+      this.current_queue.buyState = 3;
+      console.log(' --** fetch ', this.current_queue , this.queue.length ); 
+    }
+    
+  },
+  cook: function() {   
+    if( this.stock <= 0 ){
+      this.dinerState = 6;
+      return false;
+    }
+
+    if(this.cookTime != undefined){
+      return false;
+    }
+    this.stock -= 1;
+    console.log(' --** cook ', this.name, this.cooking_speed, this.stock);
+    var self = this;
+    this.cookTime = setTimeout(function(){
+       self.cook_done = true; 
+       console.log(' ** cook | cook_done' );
+       self.dinerState = 3; 
+
+        if(this.cookTime != undefined){
+          clearTimeout(this.cookTime);
+        }
+    }, (1/this.cooking_speed) * 1000 ); 
+
+  },
+  cooked: function() {   
+    this.dinerState = 4;
+    this.current_queue.buyState = 4;
+    console.log(' --** cooked ', this.current_queue ); 
+    
+  },
+  bill: function() {   
+    this.cook_done = false;
+    //bill charge from client.
+    this.Income += this.Price;
+    console.log(' ** bill | Income ', this.name, this.Income, this.Price);
+    this.dinerState = 0;
+  },
+  close: function() {   
+    //this.TargetFood.queue.push(this); 
+    //this.dinerState = 0;
+  },
 };
 
 Diner.states = {
-  idle: function() {     
+  idle: function() {   
   },
 
   fetch: function() { 

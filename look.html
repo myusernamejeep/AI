@@ -20,7 +20,9 @@
 	officer.x = canvas.width/2 - officer.width/2;
 	officer.y = canvas.height/2 - officer.height/2;
 	officer.init();  
- 
+ 	var _diners = _.sortBy(diners, function(diner){ 
+		return diner.id; 
+	});		
  	var pictures = [{  name : "org", src : "img/ogre.png" , img : ""}
  		,   { name : "TheCoffeeShop", src : "img/TheCoffeeShop.png", img : "" }
  		,   { name : "shopping-shop", src : "img/shopping-shop-icon.png", img : "" } 
@@ -55,7 +57,10 @@
 
 	function update(){		
 		officer.update();		
-		
+		_.each(_diners, function(diner){ 
+			diner.update();
+		});
+
 		render();	
 		
 		gameTimer == gameTimerResetTime ? gameTimer = 0 : gameTimer++;	
@@ -65,34 +70,41 @@
 	function render(){
 		// draw image characters
 	    drawingSurface.clearRect(0, 0, this.canvas.width, this.canvas.height);			 
-		drawingSurface.drawImage(
-			pictures[0].img, 
-			officer.sourceX, officer.sourceY, officer.sourceWidth, officer.sourceHeight,
-			Math.floor(officer.x), Math.floor(officer.y), officer.width, officer.height
-		); 
- 	
+		// draw diners
 		_.each(diners, function(diner){ 
-			var x = Math.floor(diner.x)+ (diner.id%6 == 0 )? 0 : (diner.width*(diner.id%6 ));
-		    var y = Math.floor(diner.y) + diner.height*(Math.floor(diner.id/6)) ;          
-		    //console.log(' ------- create ', pictures[1].img,  diner.id,  x,  y, diner);
-		    diner.x = x;
-		    diner.y = y;
+			var id = diner.id - 1;
+			var x = Math.floor(diner.x) + (id%6 == 0 )? 0 : (diner.width*(id%6 ));
+		    var y = Math.floor(diner.y) + diner.height*(Math.floor(id/6)) ;          
 		    
 		    drawingSurface.drawImage(
-		      pictures[(diner.id % 3) + 1].img, 
+		      pictures[(id % 3) + 1].img, 
 		      diner.sourceX, diner.sourceY, diner.sourceWidth, diner.sourceHeight,
 		      x, y, diner.width, diner.height
 		    );  
 		});	
 
+		// draw player
+		drawingSurface.drawImage(
+			pictures[0].img, 
+			officer.sourceX, officer.sourceY, officer.sourceWidth, officer.sourceHeight,
+			Math.floor(officer.x), Math.floor(officer.y), officer.width, officer.height
+		); 
+ 	 
 	}
 
  	function render_shop(){
-  		/*_.each(diners, function(diner){ 
-			var x = Math.floor(diner.x)+ (diner.width*(diner.id-1));
-		    var y = Math.floor(diner.y) + diner.height*(Math.floor(diner.id/6)) ;          
-		    console.log(' ------- create ', diner.id,  x,  y, diner); 
-		});	*/ 		
+ 			
+  		_.each(_diners, function(diner){ 
+  			var id = diner.id - 1;
+			var x = Math.floor(diner.x) + (id%6 == 0 )? 0 : (diner.width*(id%6 ));
+		    var y = Math.floor(diner.y) + diner.height*(Math.floor(id/6)) ;   
+
+		    diner.posX = x;       
+		    diner.posY = y;   
+		    //var x = Math.floor(diner.x)+ (diner.width*(diner.id-1));
+		    //var y = Math.floor(diner.y) + diner.height*(Math.floor(diner.id/6)) ;          
+		    //console.log(' ------- create ', id,  x,  y, diner); 
+		});			
 	}
 	</script>
 
