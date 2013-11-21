@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Looking</title>
+</head>
+<body>
+	<script type="text/javascript" src="http://codeorigin.jquery.com/jquery-1.10.2.min.js"></script>
+   	<script type="text/javascript" src="underscore-min.js"></script>
+    <script type="text/javascript" src="base.js"></script>
+    
+	<canvas id="canvas" width="800" height="600" style="border:1px solid #333;"></canvas>
+ 	<script type="text/javascript" src="clients.js"></script>
+    <script type="text/javascript" src="data.js"></script>
+
+ 	<script type="text/javascript" >
+ 	var canvas = document.querySelector("canvas");
+	var drawingSurface = canvas.getContext("2d");
+
+	officer.x = canvas.width/2 - officer.width/2;
+	officer.y = canvas.height/2 - officer.height/2;
+	officer.init();  
+ 
+ 	var pictures = [{  name : "org", src : "img/ogre.png" , img : ""}
+ 		,   { name : "TheCoffeeShop", src : "img/TheCoffeeShop.png", img : "" }
+ 		,   { name : "shopping-shop", src : "img/shopping-shop-icon.png", img : "" } 
+ 		,   { name : "shopping-shop-color", src : "img/shop-icon.png", img : "" } ]; 
+	var preload_pictures    = function(picture_urls, callback)
+	{
+	    var loaded  = 0;
+
+	    for(var i = 0, j = picture_urls.length; i < j; i++)
+	    {
+	        var _img     = new Image();
+
+	        _img.onload  = function()
+	        {                 	        
+	            if(++loaded == picture_urls.length && callback)
+	            {
+	                callback();
+	            }
+	        }
+
+	       	_img.src = picture_urls[i].src;
+	        picture_urls[i].img = _img;
+	    }
+	};
+
+	preload_pictures(pictures, function(){
+	    console.log('preload_pictures complete !.');
+	    render_shop();
+	    update(); 
+	    
+	});
+
+	function update(){		
+		officer.update();		
+		
+		render();	
+		
+		gameTimer == gameTimerResetTime ? gameTimer = 0 : gameTimer++;	
+		requestAnimationFrame(update, canvas);
+	}
+
+	function render(){
+		// draw image characters
+	    drawingSurface.clearRect(0, 0, this.canvas.width, this.canvas.height);			 
+		drawingSurface.drawImage(
+			pictures[0].img, 
+			officer.sourceX, officer.sourceY, officer.sourceWidth, officer.sourceHeight,
+			Math.floor(officer.x), Math.floor(officer.y), officer.width, officer.height
+		); 
+ 	
+		_.each(diners, function(diner){ 
+			var x = Math.floor(diner.x)+ (diner.id%6 == 0 )? 0 : (diner.width*(diner.id%6 ));
+		    var y = Math.floor(diner.y) + diner.height*(Math.floor(diner.id/6)) ;          
+		    //console.log(' ------- create ', pictures[1].img,  diner.id,  x,  y, diner);
+		    diner.x = x;
+		    diner.y = y;
+		    
+		    drawingSurface.drawImage(
+		      pictures[(diner.id % 3) + 1].img, 
+		      diner.sourceX, diner.sourceY, diner.sourceWidth, diner.sourceHeight,
+		      x, y, diner.width, diner.height
+		    );  
+		});	
+
+	}
+
+ 	function render_shop(){
+  		/*_.each(diners, function(diner){ 
+			var x = Math.floor(diner.x)+ (diner.width*(diner.id-1));
+		    var y = Math.floor(diner.y) + diner.height*(Math.floor(diner.id/6)) ;          
+		    console.log(' ------- create ', diner.id,  x,  y, diner); 
+		});	*/ 		
+	}
+	</script>
+
+	
+</body>
+</html>
