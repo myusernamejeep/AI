@@ -280,12 +280,13 @@ Officer.prototype = {
         console.log(' --** goToShop complete ', this.name , this.TargetFood);         
       }            
   },
-  queueToBuy:function(){
-    if (_.indexOf(this.TargetFood.queue, this) == -1 ){
+  queueToBuy:function(){ 
+    if (_.indexOf(this.TargetFood.queue, this) == -1 && !this.add_to_queue ){
       this.TargetFood.queue.push(this); 
+      this.add_to_queue =  true;
       console.log(' --** add to queue , TargetFood.queue size ', this.TargetFood.queue.length );   
-    }  
-    this.stand();
+    }   
+    //this.stand();
 
     var num_queue = this.TargetFood.queue.length;
     var your_index = _.indexOf(this.TargetFood.queue, this);
@@ -311,9 +312,12 @@ Officer.prototype = {
       this.Budget -= this.TargetDrinkPrice;
     }  
     console.log(' --** bill | Budget ', this.name, this.Budget );
+    this.buyState = 5;     
+        
   },
   goToEatTable:function(){
-    this.moveTo(500, 500 + (your_index*this.height) );
+    var your_index = _.indexOf(this.TargetFood.queue, this);
+    this.moveTo(500, 500 + (your_index*this.height*Math.random() ) );
     
     if( !(gameTimer % 600) ){
        this.setDirection( this.XPos - this.x, this.YPos - this.y );  
@@ -610,7 +614,8 @@ Diner.prototype = {
   dinerState : 0,
   states:{ IDLE:0,FETCH:1,COOK:2,COOKED:3,BILL:4,CLOSE:5},   
   
-  init:function(){       
+  init:function(){    
+    this.queue = [];   
   },
   
   update : function(){       
@@ -643,18 +648,18 @@ Diner.prototype = {
       this.dinerState = 6;
       return false;
     }
-    console.log(' --** idle ', this.name ); 
+    //console.log(' --** idle ', this.name ); 
     this.dinerState = 1;
   },
   fetch: function() {   
     //console.log(' --** fetch queue ', this.queue   ); 
     this.current_queue = _.first(this.queue);  
-    if (this.current_queue != undefined){
-      //console.log(' --** fetch this.current_queue ', this.current_queue, this.queue   ); 
+    if (this.current_queue != undefined && this.queue.length > 0 ){
+      console.log(' --** fetch this.current_queue ', this.name, this.current_queue, this.queue   ); 
       this.queue = _.rest(this.queue);  
       this.dinerState = 2;
       this.current_queue.buyState = 3;
-      console.log(' --** fetch ', this.current_queue , this.queue.length ); 
+      //console.log(' --** fetch ', this.current_queue , this.queue.length ); */
     }
     
   },
