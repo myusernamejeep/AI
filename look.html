@@ -3,8 +3,33 @@
 <head>
 <meta charset="UTF-8">
 <title>Looking</title>
+<style>
+.bubble
+{
+  position:relative;
+  background:green;
+  float:left;     /* because the image at left */
+}
+.bubbleborder
+{
+  position:absolute;
+  top:0;
+  left:0;
+}
+.bubbletext
+{
+  position:absolute;
+  top:0;
+  left:0;
+  width:200px;
+  height:170px;
+  padding:80px 16px 16px 16px;
+  text-align:center
+}
+</style>
 </head>
 <body>
+
 	<script type="text/javascript" src="http://codeorigin.jquery.com/jquery-1.10.2.min.js"></script>
    	<script type="text/javascript" src="underscore-min.js"></script>
     <script type="text/javascript" src="base.js"></script>
@@ -110,8 +135,42 @@
 		    //console.log(' ------- create ', id,  x,  y, diner); 
 		});			
 	}
+
+	function drawBubble(ctx, x, y, w, h, radius)
+	{
+	  var r = x + w;
+	  var b = y + h;
+	  ctx.beginPath();
+	  ctx.strokeStyle="black";
+	  ctx.lineWidth="2";
+	  ctx.moveTo(x+radius, y);
+	  ctx.lineTo(x+radius/2, y-10);
+	  ctx.lineTo(x+radius * 2, y);
+	  ctx.lineTo(r-radius, y);
+	  ctx.quadraticCurveTo(r, y, r, y+radius);
+	  ctx.lineTo(r, y+h-radius);
+	  ctx.quadraticCurveTo(r, b, r-radius, b);
+	  ctx.lineTo(x+radius, b);
+	  ctx.quadraticCurveTo(x, b, x, b-radius);
+	  ctx.lineTo(x, y+radius);
+	  ctx.quadraticCurveTo(x, y, x+radius, y);
+	  ctx.stroke();
+	}
+	function dispQuote() 
+	{
+	  var canvas = document.getElementById('canvas1');
+	  var ctx = canvas.getContext('2d'); 
+	  drawBubble(ctx, 10,60,220, 90, 20);
+	}
+	window.onload=dispQuote;
 	</script>
 
-	
+	<div class="bubble">
+		<canvas id="canvas1" class="bubbleborder" width="240" height="200" >
+		</canvas>
+		<div class="bubbletext">
+			All generalizations are false, including this one. <br><i>Marc Twain.</i>
+		</div>
+	</div>
 </body>
 </html>
