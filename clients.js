@@ -14,12 +14,7 @@ var Officer = Base.extend({
 
     this.canvas = document.querySelector("canvas");
     this.drawingSurface = this.canvas.getContext("2d");
-  /*
-    this.image = new Image();
-    this.image.addEventListener("load", $.proxy( this.update, self )  , false);
-    this.image.src = "../img/ogre.png";*/
-
-
+  
     this.StartTime = new Date().getTime();
     this.EndTime = this.StartTime + (this.TimeDuration/2 * 1000); 
   }
@@ -28,26 +23,8 @@ var Officer = Base.extend({
 
    
 Officer.prototype = { 
-  /*
-  update : function (){    
-    this.updateState();    
-    
-    this.render(); 
-    
-    gameTimer == gameTimerResetTime ? gameTimer = 0 : gameTimer++;  
-    requestAnimationFrame($.proxy( this.update, this ) , this.canvas);
-  },
-
-  render :function (){
-    this.drawingSurface.clearRect(0, 0, this.canvas.width, this.canvas.height);       
-    this.drawingSurface.drawImage(
-      this.image, 
-      this.sourceX, this.sourceY, this.sourceWidth, this.sourceHeight,
-      Math.floor(this.x), Math.floor(this.y), this.width, this.height
-    );            
-  },*/
-  //state : "idle",
-  Appetize : 5, //max 10
+ 
+  Appetize : 9, //max 10
   Budget : 100,
   TimeSchedule : 9, //max 10
   TimeDuration : 60,  
@@ -179,7 +156,7 @@ Officer.prototype = {
   speed:1,
   
   //state:0, //looking
-  state:1, //buying
+  action:1, //buying
 
   lookRadius:100,
   lookState:0, //init
@@ -189,7 +166,8 @@ Officer.prototype = {
   numberOfFrames: 3, //0-3
   currentFrame: 0,
   timer: 0,
-  states:{ INIT:0,GOTOSHOP:1, QUEUETOBUY:2, ISYOURQUEUE:3, WAITFORCOOK:4, GETORDERFOOD:5, GOTO_TABLE_EATZONE:6, EATFOOD:7, RESET:8, GO_BACK:9},   
+  actions : { LOOKING: 0, BUYING:1 },
+  states:{ INIT:0, GOTOSHOP:1, QUEUETOBUY:2, ISYOURQUEUE:3, WAITFORCOOK:4, GETORDERFOOD:5, GOTO_TABLE_EATZONE:6, EATFOOD:7, RESET:8, GO_BACK:9},   
     
   init:function(){
     this.sourceXPos = this.sourceX;
@@ -197,24 +175,28 @@ Officer.prototype = {
     
     //save center
     this.XPos = this.x;
-    this.YPos = this.y;         
+    this.YPos = this.y;     
+  
   },
   
   update : function(){          
-    switch(this.state){
-        case this.states.LOOKING:
+    switch(this.action){
+        case this.actions.LOOKING:
           this.look();            
           break;
-        case this.states.BUYING:
+        case this.actions.BUYING:
           this.buy();           
           break;
           
     }                           
   },
   buy:function(){
+ 
+    
     if(this.Budget <= 0){
       this.buyState = this.states.GO_BACK;
     }    
+ 
     switch(this.buyState){
         case this.states.INIT:
           this.buyInit();         
@@ -485,96 +467,19 @@ Officer.prototype = {
   },
   
   setDirection:function( vx, vy ){          
-       if(Math.abs(vx) > Math.abs(vy)){       
-         (vx >= 0) ? 
-             this.direction = this.directions.RIGHT : 
-             this.direction = this.directions.LEFT; 
-              
-         }else{         
-           (vy >= 0)?
-             this.direction = this.directions.DOWN :
-             this.direction = this.directions.UP;                   
-         }
+    if(Math.abs(vx) > Math.abs(vy)){       
+     (vx >= 0) ? 
+         this.direction = this.directions.RIGHT : 
+         this.direction = this.directions.LEFT; 
+          
+     }else{         
+       (vy >= 0)?
+         this.direction = this.directions.DOWN :
+         this.direction = this.directions.UP;                   
+     }
   }
 };
-
-Officer.states = {
-
-  idle: function() { 
-  },
  
-  choose: function() {
-    //this.state.identifier = "choose"; 
-    console.log(' ** choose chooseDiner', this.name, this.state.identifier);
-    //this.chooseDiner();
-  },
-
-  canChoose: function() { 
-    console.log(' -- canChoose', this.name, this.hasAppetize() ,  this.state.identifier , this.hasAppetize() && this.state.identifier == "idle");
-    return this.hasAppetize() && this.state.identifier == "idle"; 
-  },
-
-  queue: function() {
-    //this.state.identifier = "queue"; 
-    //this.TargetFood.queue.push(this);
-    console.log(' ** queue', this.name, ' length ', this.TargetFood.queue.length);  
-  },
-
-  canQueue: function() { 
-    console.log(' -- canQueue', this.name, ' this.Budget', this.Budget, 'this.TargetFoodPrice',  this.TargetFoodPrice , 'this.Budget > this.TargetFoodPrice ', this.Budget > this.TargetFoodPrice , this.state.identifier);  
-    return this.TargetFoodPrice && this.Appetize < 9 && this.Budget > this.TargetFoodPrice && this.TimeDuration > 0 && this.state.identifier == "choosed"; 
-  },
-
-  buyFood: function() {
-    //this.state.identifier = "buy"; 
-    this.Budget -= this.TargetFoodPrice;
-    this.FoodBuy.push(this.TargetFood);
-
-    console.log(' ** buyFood', this.name, this.TargetFoodPrice, this.Budget );
-    //this.choose();
-  },
-
-  canBuyFood: function() {
-    console.log(' -- canBuyFood', this.name, this.Budget > this.TargetFoodPrice ,this.state.identifier );
-    
-    return this.TargetFoodPrice && this.Budget > this.TargetFoodPrice && this.state.identifier ==  "queue"; 
-  },
-
-  buyDrink: function() {
-    //this.state.identifier = "buy"; 
-    this.Budget -= this.TargetDrinkPrice;
-    this.DrinkBuy.push(this.TargetDrink);
-    console.log(' ** buyDrink', this.name, this.TargetDrinkPrice, this.Budget );
-  }, 
-
-  canBuyDrink: function() {
-    console.log(' -- canBuyDrink', this.name, this.Budget > this.TargetDrinkPrice ,this.state.identifier );
-    
-    return this.TargetDrinkPrice && this.Appetize < 9 && this.Budget > this.TargetDrinkPrice && this.TimeDuration > 0 ;
-  },
-
-  bill: function() { 
-  }, // nothing to do - just a state
-
-  canBill: function() { 
-    console.log(' -- canBill', this.name );
-    return this.Budget > 0 && (this.state.identifier == "buyFood" || this.state.identifier == "buyDrink");  
-  },
-  
-  leave: function() {
-    console.log(' ** leave', this.name);
-  }, 
-
-  canLeave: function() {
-    console.log(' -- canLeave', this.name, this.FoodBuy.length , this.DrinkBuy.length );
-    this.CurrentTime = new Date().getTime();
-    if (this.CurrentTime - this.EndTime > 0 ){
-      return true;
-    }
-
-    return this.FoodBuy.length > 0 || this.DrinkBuy.length > 0 || this.TimeDuration < 0 || this.Budget < 10;
-  } 
-};
  
 var Diner = Base.extend({  
   constructor: function(settings) {
@@ -686,15 +591,15 @@ Diner.prototype = {
     this.stock -= 1;
     console.log(" --** I 'm cooking for your order ", this.name, this.cooking_speed, this.stock);
     var self = this;
-    this.cookTime = setTimeout(function(){
+    self.cookTime = setTimeout(function(){
        self.cook_done = true; 
        console.log(" ** I 's  done! ");
-       self.dinerState = this.states.COOKED; 
+       self.dinerState = self.states.COOKED; 
 
-        if(this.cookTime != undefined){
-          clearTimeout(this.cookTime);
+        if(self.cookTime != undefined){
+          clearTimeout(self.cookTime);
         }
-    }, (1/this.cooking_speed) * 1000 ); 
+    }, (1/self.cooking_speed) * 1000 ); 
 
   },
   cooked: function() {   
